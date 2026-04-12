@@ -1,5 +1,6 @@
 import os
 import google.generativeai as genai
+from groq import Groq
 from dotenv import load_dotenv
 from langchain_community.vectorstores import FAISS
 from langchain_core.embeddings import Embeddings
@@ -8,6 +9,7 @@ from typing import List
 load_dotenv()
 
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 class GeminiEmbeddings(Embeddings):
     def embed_documents(self, texts: List[str]) -> List[List[float]]:
@@ -59,8 +61,10 @@ Question:
 
 Answer:"""
 
-    model = genai.GenerativeModel("gemini-2.0-flash-lite")
-    response = model.generate_content(prompt)
+    response = groq_client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{"role": "user", "content": prompt}]
+    )
 
     sources = []
     for i, doc in enumerate(source_docs):
@@ -71,6 +75,6 @@ Answer:"""
         })
 
     return {
-        "answer": response.text,
+        "answer": response.choices[0].message.content,
         "sources": sources
     }
