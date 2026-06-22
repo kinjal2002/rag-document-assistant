@@ -4,7 +4,7 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from pydantic import BaseModel
 
 from app.utils import load_and_split_document, get_upload_path
-from app.rag_pipeline import build_vectorstore, build_rag_chain, ask_question
+from app.rag_pipeline import build_vectorstore, build_rag_chain, ask_question, submit_feedback
 
 app = FastAPI(
     title="RAG Document Assistant",
@@ -45,6 +45,21 @@ async def upload_document(file: UploadFile = File(...)):
 
 class QuestionRequest(BaseModel):
     question: str
+
+
+class FeedbackRequest(BaseModel):
+    run_id: str
+    score: int   # 1 = helpful, 0 = not helpful
+    comment: str = ""
+
+
+@app.post("/feedback")
+def feedback(request: FeedbackRequest):
+    if request.score not in (0, 1):
+        raise HTTPException(status_code=400, detail="score must be 0 or 1.")
+    submit_feedback(request.run_id, request.score, request.comment)
+    return {"message": "Feedback submitted to LangSmith."}
+
 
 @app.post("/ask")
 def ask(request: QuestionRequest):
