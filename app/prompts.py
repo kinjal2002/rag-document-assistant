@@ -1,5 +1,4 @@
 from langchain_core.prompts import PromptTemplate
-from app.prompts import rag_prompt
 # This is the instruction we give to the LLM
 # {context} = the relevant chunks retrieved from the document
 # {question} = the user's question

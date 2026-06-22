@@ -1,14 +1,15 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 import google.generativeai as genai
 from groq import Groq
-from dotenv import load_dotenv
 from langsmith import traceable, Client
 from langsmith.run_helpers import get_current_run_tree
 from langchain_community.vectorstores import FAISS
 from langchain_core.embeddings import Embeddings
 from typing import List
-
-load_dotenv()
 
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
@@ -86,9 +87,11 @@ Answer:"""
     for i, doc in enumerate(source_docs):
         sources.append({
             "chunk": i + 1,
-            "page": doc.metadata.get("page", "unknown"),
+            "page": doc.metadata.get("page", 0) + 1,
             "preview": doc.page_content[:150]
         })
+
+    langsmith_client.flush()
 
     return {
         "answer": answer,

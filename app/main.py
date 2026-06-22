@@ -57,7 +57,10 @@ class FeedbackRequest(BaseModel):
 def feedback(request: FeedbackRequest):
     if request.score not in (0, 1):
         raise HTTPException(status_code=400, detail="score must be 0 or 1.")
-    submit_feedback(request.run_id, request.score, request.comment)
+    try:
+        submit_feedback(request.run_id, request.score, request.comment)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"LangSmith error: {str(e)}")
     return {"message": "Feedback submitted to LangSmith."}
 
 
